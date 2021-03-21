@@ -1,0 +1,35 @@
+#!/bin/bash
+
+NAME="`whoami`"
+HOME_BASE=/home/`whoami`
+VENV_BASE=${HOME_BASE}
+PROJECTBASE=${HOME_BASE}/projects
+DJANGODIR=${PROJECTBASE}/${NAME}
+SOCKFILE=${PROJECTBASE}/gunicorn.sock
+USER=`id -un`
+GROUP=`id -gn`
+NUM_WORKERS=3
+DJANGO_SETTINGS_MODULE=${NAME}.settings
+DJANGO_WSGI_MODULE=${NAME}.wsgi
+
+echo "Starting gunicorn as `whoami`"
+
+cd ${DJANGODIR}
+source ${VENV_BASE}/bin/activate
+
+export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+
+export PYTHONPATH=${DJANGODIR}:${PYTHONPATH}
+
+# Create the run directory if it doesn't exist
+RUNDIR=$(dirname $SOCKFILE)
+test -d $RUNDIR || mkdir -p $RUNDIR
+
+exec ${VENV_BASE}/bin/gunicorn ${DJANGO_WSGI_MODULE}:application \
+	--name $NAME \
+	--workers $NUM_WORKERS \
+	--user=$USER --group=$GROUP \
+	--bind=unix:$SOCKFILE \
+	--log-level=debug \
+	--log-file=-
+

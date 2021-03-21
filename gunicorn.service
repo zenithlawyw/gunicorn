@@ -1,0 +1,13 @@
+[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+User=gunicorn
+Group=gunicorn
+WorkingDirectory=/path_to/project_directory
+ExecStart=/path_to/gunicorn_start_script
+
+[Install]
+WantedBy=multi-user.target
